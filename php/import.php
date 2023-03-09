@@ -1,4 +1,5 @@
 <?php
+ini_set('memory_limit', '256M');
 require '../index.php';
 require 'database.php';
 $table_name = 'csv_import';
@@ -7,17 +8,24 @@ $db = connectdb($table_name);
 $target_dir = 'tmp/';
 $target_file = $target_dir . basename($_FILES['file']['tmp_name']);
 $file = fopen(checkfile($target_file), 'r');
+
+$header = fgetcsv($file);
+
+$count = 0;
 if ($file) {
-    while (($line = fgets($file)) !== false) {
-        //add to db
-        $sql = $db->prepare("INSERT INTO csv_import (Name, Surname, Initials, Age, DateOfBirth) VALUES (:name, :surname, :initials, :age, :dateofbirth)");
-        $sql->bindValue(':name', $line[0]);
-        $sql->bindValue(':surname', $line[1]);
-        $sql->bindValue(':initials', $line[2]);
-        $sql->bindValue(':age', $line[3]);
-        $sql->bindValue(':dateofbirth', $line[4]);
-        $sql->execute();
+    $values = [];
+    while (($line = fgetcsv($file)) !== false) {
+        $id = $db->escapeString($line[0]);
+        $name = $db->escapeString($line[1]);
+        $surname = $db->escapeString($line[2]);
+        $initials = $db->escapeString($line[3]);
+        $age = $db->escapeString($line[4]);
+        $dateofbirth = $db->escapeString($line[5]);
+        $values[] = "('$id', '$name', '$surname', '$initials', '$age', '$dateofbirth')";
+        $count++;
     }
+    $sql = "INSERT INTO csv_import (Id, Name, Surname, Initials, Age, DateOfBirth) VALUES " . implode(',', $values);
+    $db->exec($sql);
 } else {
     header("Location: /index.php?error=true");
 }
@@ -27,7 +35,8 @@ $db->close();
 unlink($target_file);
 rmdir("tmp/");
 fclose($file);
-header("Location: /index.php?importsuccess=true");
+$_SESSION['message'] = $count . ' records imported';
+header("Location: /index.php");
 
 function checkfile($targetfile)
 {

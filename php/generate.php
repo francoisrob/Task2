@@ -1,5 +1,3 @@
-// Generate Variations
-
 <?php
 $variations = $_POST['variations'];
 if ($variations > 1000500) {
@@ -75,7 +73,6 @@ while ($iCount < $variations) {
     $name = $names[array_rand($names)];
     $surname = $surnames[array_rand($surnames)];
     $dob = date("Y-m-d", rand(strtotime("01-01-1940"), strtotime("01-01-2005")));
-
     $age = calculateage($dob, $today);
     $hash = $name . $surname . $age . $dob;
 
@@ -105,6 +102,4 @@ function calculateage($dob, $today)
     $bday = new DateTime($dob);
     return $today->diff($bday)->y;
 }
-
-
 ?>

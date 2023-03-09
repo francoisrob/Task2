@@ -9,6 +9,11 @@
 </head>
 
 <body>
+    <?php
+    // ini_set('UPLOAD_MAX_FILESIZE', '40M');
+    // ini_set('POST_MAX_SIZE', '40M');
+    session_start()
+        ?>
     <div>
         <h2>Generate CSV</h2>
         <form action="/php/generate.php" method="post">
@@ -19,11 +24,9 @@
             if (isset($_GET['success'])) {
                 echo "<p>CSV file generated successfully!</p>";
             }
-            ;
             if (isset($_GET['invalid'])) {
                 echo "<p>The number of variations have to be between 1 and 1,000,500!</p>";
             }
-            ;
             ?>
         </form>
     </div>
@@ -42,6 +45,10 @@
             }
             if (isset($_GET['emptyfile'])) {
                 echo "<p>*The file is empty!</p>";
+            }
+            if (isset($_SESSION['message'])) {
+                echo "<p>" . $_SESSION['message'] . "</p>";
+                unset($_SESSION['message']);
             }
             ?>
         </form>
