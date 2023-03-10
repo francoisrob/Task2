@@ -37,9 +37,6 @@
             <input type="file" name="file" id="file" accept=".csv" required><br>
             <button type="submit">Submit file</button>
             <?php
-            if (isset($_GET['importsuccess'])) {
-                echo "<p>CSV file imported successfully!</p>";
-            }
             if (isset($_GET['importerror'])) {
                 echo "<p>*There was an error uploading your file!</p>";
             }
