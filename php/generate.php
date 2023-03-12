@@ -1,7 +1,10 @@
 <?php
+session_start();
+$start = hrtime(true);
 $variations = $_POST['variations'];
-if ($variations > 1000500) {
-    header("Location: /index.php?invalid=true");
+if ($variations < 1 || $variations > 1000500) {
+    $_SESSION['messagegen'] = '<p type="error">The number of variations have to be between 1 and 1,000,500!</p>';
+    header("Location: /index.php");
     exit();
 }
 $today = new DateTime(date('Y-m-d'));
@@ -82,7 +85,10 @@ while ($iCount < $variations) {
         $id = $iCount;
         $initials = getinitials($name);
         fputcsv($file, [$id, $name, $surname, $initials, $age, $dob]);
-        header("Location: /index.php?success=true");
+        $end = hrtime(true);
+        $duration = ($end - $start) / 1e+9;
+        $_SESSION['messagegen'] = '<p>' . number_format($iCount) . ' records generated in ' . number_format($duration, 4) . ' seconds. </p>';
+        header("Location: /index.php");
     }
 }
 

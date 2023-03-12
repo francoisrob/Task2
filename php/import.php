@@ -1,17 +1,17 @@
 <?php
 ini_set('memory_limit', '256M');
+session_start();
+$start = hrtime(true);
 require '../index.php';
 require 'database.php';
 $table_name = 'csv_import';
 $db = connectdb($table_name);
-
 $target_dir = 'tmp/';
 $target_file = $target_dir . basename($_FILES['file']['tmp_name']);
 $file = fopen(checkfile($target_file), 'r');
-
 $header = fgetcsv($file);
-
 $count = 0;
+
 if ($file) {
     $values = [];
     while (($line = fgetcsv($file)) !== false) {
@@ -27,7 +27,8 @@ if ($file) {
     $sql = "INSERT INTO csv_import (Id, Name, Surname, Initials, Age, DateOfBirth) VALUES " . implode(',', $values);
     $db->exec($sql);
 } else {
-    header("Location: /index.php?error=true");
+    $_SESSION['messageimport'] = '<p type="error">*File could not be opened.</p>';
+    header("Location: /index.php");
 }
 
 //Close all
@@ -35,19 +36,30 @@ $db->close();
 unlink($target_file);
 rmdir("tmp/");
 fclose($file);
-$_SESSION['message'] = $count . ' records imported';
+$end = hrtime(true);
+$duration = ($end - $start) / 1e+9;
+$_SESSION['messageimport'] = '<p>' . number_format($count) . ' records imported in ' . number_format($duration, 2) . ' seconds! </p>';
 header("Location: /index.php");
 
 function checkfile($targetfile)
 {
+    if (mime_content_type($_FILES['file']['tmp_name']) != 'text/csv') {
+        $_SESSION['messageimport'] = '<p type="error">File is not a CSV filetype.</p>';
+        header("Location: /index.php");
+        exit();
+    }
     if (!file_exists("tmp/")) {
         mkdir("tmp/");
     }
     if (!move_uploaded_file($_FILES['file']['tmp_name'], $targetfile)) {
-        header('../index.php?importerror=true');
+        $_SESSION['messageimport'] = '<p type="error">File could not be uploaded.</p>';
+        header('../index.php');
+        exit();
     }
     if (filesize($targetfile) <= 40) {
-        header("Location: /index.php?emptyfile=true");
+        $_SESSION['messageimport'] = '<p type="error">File is empty.</p>';
+        header("Location: /index.php");
+        exit();
     }
     return $targetfile;
 }
